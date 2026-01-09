@@ -1,0 +1,26 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    // launch config for debugging Vue web apps
+    {
+      "name": "Debug Nuxt: WebApp",
+      "type": "msedge",
+      "presentation": {
+        "hidden": false,
+        "group": "1 PROGRAM:NUXT",
+        "order": 1
+      },
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}",
+      "sourceMapPathOverrides": {
+        "webpack://_nuxt/*": "${webRoot}/*",
+        "webpack:///*": "${webRoot}/*"
+      },
+      "preLaunchTask": "nuxt:dev"
+    }
+  ]
+}
