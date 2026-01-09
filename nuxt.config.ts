@@ -1,5 +1,10 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  app: {
+    head: {
+      titleTemplate: 'Simple Sudoku',
+    }
+  },
   compatibilityDate: '2025-07-15',
   css: [
     'bulma',
