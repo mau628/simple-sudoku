@@ -9,9 +9,10 @@
     </div>
     <div class="sdk-grid">
       <template v-for="(row, rowIndex) in result" :key="rowIndex">
-        <div v-for="(cell, cellIndex) in row" :key="cellIndex"
-          :class="`sdk-cell ${cell.Visible ? 'is-fixed' : ''} ${cell.IsHighlighted ? 'is-highlighted' : ''}`"
-          @click="setNumber(cell)">
+        <div v-for="(cell, cellIndex) in row" :key="cellIndex" :class="[
+          'sdk-cell',
+          { 'is-fixed': cell.Visible, 'is-highlighted': cell.IsHighlighted }
+        ]" @click="setNumber(cell)">
           <span>
             {{ cell.Value }}
           </span>
@@ -53,18 +54,14 @@ const levelStorageKey = 'sdk-level';
 const localLevel = parseInt(localStorage.getItem(levelStorageKey) || '2');
 const level = ref(levels.value[localLevel].value);
 const result = ref<Cell[][]>([]);
-const buttons = ref<ButtonPicker[]>([]);
-
-buttons.value.push({ Value: 1, Selected: false, Remaining: 0, Label: '&#x0031;' });
-buttons.value.push({ Value: 2, Selected: false, Remaining: 0, Label: '&#x0032;' });
-buttons.value.push({ Value: 3, Selected: false, Remaining: 0, Label: '&#x0033;' });
-buttons.value.push({ Value: 4, Selected: false, Remaining: 0, Label: '&#x0034;' });
-buttons.value.push({ Value: 5, Selected: false, Remaining: 0, Label: '&#x0035;' });
-buttons.value.push({ Value: 6, Selected: false, Remaining: 0, Label: '&#x0036;' });
-buttons.value.push({ Value: 7, Selected: false, Remaining: 0, Label: '&#x0037;' });
-buttons.value.push({ Value: 8, Selected: false, Remaining: 0, Label: '&#x0038;' });
-buttons.value.push({ Value: 9, Selected: false, Remaining: 0, Label: '&#x0039;' });
-buttons.value.push({ Value: -1, Selected: false, Remaining: 0, Label: '&#x274C;' });
+const buttons = ref<ButtonPicker[]>(
+  Array.from({ length: 9 }, (_, i) => ({
+    Value: i + 1,
+    Selected: false,
+    Remaining: 0,
+    Label: `&#x${(0x0030 + i + 1).toString(16)};`
+  })).concat({ Value: -1, Selected: false, Remaining: 0, Label: '&#x274C;' })
+);
 
 const isGridValid = (boardGrid: number[][] | Cell[][]): boolean => {
   const isNumberArray = typeof boardGrid[0]?.[0] === 'number'
@@ -195,33 +192,28 @@ const getGrid = () => {
 }
 
 const toggleNumber = (number: ButtonPicker) => {
-  if (number.Selected) {
-    number.Selected = false;
-    result.value.forEach(row => {
-      row.forEach(cell => {
-        cell.IsHighlighted = false;
-      });
-    });
-    number.Remaining = 0;
-    return;
-  }
+  // Reset all buttons and cells in single pass
   buttons.value.forEach(num => {
-    if (num !== number) {
-      num.Selected = false;
-    }
+    num.Selected = (num === number && !number.Selected);
     num.Remaining = 0;
   });
-  number.Selected = true;
+
+  if (!number.Selected) {
+    // Just deselected - clear highlights
+    result.value.forEach(row => row.forEach(cell => cell.IsHighlighted = false));
+    return;
+  }
+
+  // Single pass to highlight and count
   let numberCounter = 0;
-  result.value.forEach(row => {
-    row.forEach(cell => {
-      const isSameNumber = cell.Value === number.Value && number.Value > 0
+  for (const row of result.value) {
+    for (const cell of row) {
+      const isSameNumber = cell.Value === number.Value && number.Value > 0;
       cell.IsHighlighted = isSameNumber || (number.Value < 0 && !cell.Visible && cell.Value !== undefined);
-      if (isSameNumber) {
-        numberCounter++;
-      }
-    });
-  });
+      if (isSameNumber) numberCounter++;
+    }
+  }
+
   if (number.Value > 0) {
     number.Remaining = 9 - numberCounter;
   }
@@ -240,10 +232,13 @@ const setNumber = (cell: Cell) => {
     cell.Value = selectedNumber.Value;
     selectedNumber.Remaining--;
     cell.IsHighlighted = true;
-    if (isGridValid(result.value)) {
+
+    const allFilled = result.value.every(row => row.every(cell => cell.Value !== undefined));
+    if (allFilled && isGridValid(result.value)) {
       nextTick().then(() => {
         setTimeout(() => {
           alert('Congratulations! You have completed the puzzle correctly.');
+          getGrid();
         }, 100);
       });
     }
