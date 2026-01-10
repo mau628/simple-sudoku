@@ -227,6 +227,7 @@ const setNumber = (cell: Cell) => {
   if (selectedNumber) {
     if (selectedNumber.Value < 0) {
       cell.Value = undefined;
+      cell.IsHighlighted = false;
       return;
     }
     cell.Value = selectedNumber.Value;
