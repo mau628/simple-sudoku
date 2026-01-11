@@ -184,7 +184,7 @@ const generateGrid = (): number[][] => {
     boardGrid.forEach(row => {
       row.forEach(col => {
         if(hiddenCells.has(cellIndex)) {
-          boardGrid[row][col] = undefined;
+          row[col] = undefined;
         }
         cellIndex++;
       });
