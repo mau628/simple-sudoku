@@ -161,7 +161,7 @@ const generateGrid = (): number[][] => {
     return true;
   }
 
-  const hideCells = () => {
+  /*const hideCells = () => {
     boardGrid.forEach(row => {
       const indicesToHide = new Set<number>();
       while (indicesToHide.size < level.value) {
@@ -170,6 +170,15 @@ const generateGrid = (): number[][] => {
         row[randomIndex] = undefined;
       }
     });
+  }*/
+
+  const hideCells = () => {
+    const cellsToHide = level.value * 9;
+    const hiddenCells = new Set<number>();
+    do {
+      const index = Math.floor(Math.random() * 81);
+      hiddenCells.add(index);
+    } while (hiddenCells.size < cellsToHide)
   }
 
   do {
