@@ -179,6 +179,16 @@ const generateGrid = (): number[][] => {
       const index = Math.floor(Math.random() * 81);
       hiddenCells.add(index);
     } while (hiddenCells.size < cellsToHide)
+    
+    const cellIndex =0;
+    boardGrid.forEach(row => {
+      row.forEach(col => {
+        if(hiddenCells.has(cellIndex)) {
+          boardGrid[row][col] = undefined;
+        }
+        cellIndex++;
+      });
+    });
   }
 
   do {
