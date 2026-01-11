@@ -180,7 +180,7 @@ const generateGrid = (): number[][] => {
       hiddenCells.add(index);
     } while (hiddenCells.size < cellsToHide)
     
-    const cellIndex =0;
+    let cellIndex =0;
     boardGrid.forEach(row => {
       row.forEach(col => {
         if(hiddenCells.has(cellIndex)) {
