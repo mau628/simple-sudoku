@@ -7,6 +7,11 @@
         <span v-html="value.label"></span>
       </label>
     </div>
+    <button class="button is-primary" @click.prevent="newGame">
+      <span>
+        New
+      </span>
+    </button>
     <div class="sdk-grid">
       <template v-for="(row, rowIndex) in mainGrid" :key="rowIndex">
         <div v-for="(cell, cellIndex) in row" :key="cellIndex" :class="[
@@ -31,6 +36,17 @@
   </section>
 </template>
 <script lang="ts" setup>
+const setStorage = (key: string, value: any) => {
+  localStorage.setItem(key, JSON.stringify(value));
+}
+const getStorage = (key: string, defaultValue: any) => {
+  const storedValue = localStorage.getItem(key);
+  if (storedValue) {
+    return JSON.parse(storedValue);
+  }
+  return defaultValue;
+}
+
 type Cell = {
   Value?: number;
   CellIndex: number;
@@ -51,7 +67,8 @@ const levels = ref([
   { label: '5', value: 6 },
 ]);
 const levelStorageKey = 'sdk-level';
-const localLevel = parseInt(localStorage.getItem(levelStorageKey) || '2');
+const gridStorageKey = 'sdk-grid';
+const localLevel = parseInt(getStorage(levelStorageKey, '2'));
 const level = ref(levels.value[localLevel].value);
 const mainGrid = ref<Cell[][]>([]);
 const buttons = ref<ButtonPicker[]>(
@@ -62,6 +79,10 @@ const buttons = ref<ButtonPicker[]>(
     Label: `&#x${(0x0030 + i + 1).toString(16)};`
   })).concat({ Value: -1, Selected: false, Remaining: 0, Label: '&#x274C;' })
 );
+
+const saveGridToStorage = () => {
+  setStorage(gridStorageKey, mainGrid.value);
+}
 
 const isGridValid = (boardGrid: number[][] | Cell[][]): boolean => {
   const isNumberArray = typeof boardGrid[0]?.[0] === 'number'
@@ -197,6 +218,7 @@ const getGrid = () => {
     Visible: cell !== undefined,
     IsHighlighted: false,
   })));
+  saveGridToStorage();
 }
 
 const toggleNumber = (number: ButtonPicker) => {
@@ -254,16 +276,30 @@ const setNumber = (cell: Cell) => {
           getGrid();
         }, 100);
       });
+      return;
     }
+    saveGridToStorage();
+  }
+}
+
+const newGame = () => {
+  const confirmNewGame = confirm('Are you sure you want to start a new game? Your current progress will be lost.');
+  if (confirmNewGame) {
+    getGrid();
   }
 }
 
 watch(level, () => {
-  getGrid();
-  localStorage.setItem(levelStorageKey, levels.value.findIndex(lvl => lvl.value === level.value).toString());
+  newGame();
+  setStorage(levelStorageKey, levels.value.findIndex(lvl => lvl.value === level.value).toString());
 });
 
-getGrid();
+const savedGrid = getStorage(gridStorageKey, null);
+if (savedGrid) {
+  mainGrid.value = savedGrid;
+} else {
+  getGrid();
+}
 
 </script>
 <style lang="scss" scoped>
