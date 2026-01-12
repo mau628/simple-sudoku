@@ -8,7 +8,7 @@
       </label>
     </div>
     <div class="sdk-grid">
-      <template v-for="(row, rowIndex) in result" :key="rowIndex">
+      <template v-for="(row, rowIndex) in mainGrid" :key="rowIndex">
         <div v-for="(cell, cellIndex) in row" :key="cellIndex" :class="[
           'sdk-cell',
           { 'is-fixed': cell.Visible, 'is-highlighted': cell.IsHighlighted }
@@ -53,7 +53,7 @@ const levels = ref([
 const levelStorageKey = 'sdk-level';
 const localLevel = parseInt(localStorage.getItem(levelStorageKey) || '2');
 const level = ref(levels.value[localLevel].value);
-const result = ref<Cell[][]>([]);
+const mainGrid = ref<Cell[][]>([]);
 const buttons = ref<ButtonPicker[]>(
   Array.from({ length: 9 }, (_, i) => ({
     Value: i + 1,
@@ -191,7 +191,7 @@ const generateGrid = (): number[][] => {
 }
 
 const getGrid = () => {
-  result.value = generateGrid().map((row) => row.map<Cell>((cell, cellIndex) => ({
+  mainGrid.value = generateGrid().map((row) => row.map<Cell>((cell, cellIndex) => ({
     Value: cell,
     CellIndex: cellIndex,
     Visible: cell !== undefined,
@@ -208,13 +208,13 @@ const toggleNumber = (number: ButtonPicker) => {
 
   if (!number.Selected) {
     // Just deselected - clear highlights
-    result.value.forEach(row => row.forEach(cell => cell.IsHighlighted = false));
+    mainGrid.value.forEach(row => row.forEach(cell => cell.IsHighlighted = false));
     return;
   }
 
   // Single pass to highlight and count
   let numberCounter = 0;
-  for (const row of result.value) {
+  for (const row of mainGrid.value) {
     for (const cell of row) {
       const isSameNumber = cell.Value === number.Value && number.Value > 0;
       cell.IsHighlighted = isSameNumber || (number.Value < 0 && !cell.Visible && cell.Value !== undefined);
@@ -238,12 +238,16 @@ const setNumber = (cell: Cell) => {
       cell.IsHighlighted = false;
       return;
     }
+    if (selectedNumber.Remaining <= 0 || cell.Value === selectedNumber.Value) {
+      return;
+    }
+
     cell.Value = selectedNumber.Value;
     selectedNumber.Remaining--;
     cell.IsHighlighted = true;
 
-    const allFilled = result.value.every(row => row.every(cell => cell.Value !== undefined));
-    if (allFilled && isGridValid(result.value)) {
+    const allFilled = mainGrid.value.every(row => row.every(cell => cell.Value !== undefined));
+    if (allFilled && isGridValid(mainGrid.value)) {
       nextTick().then(() => {
         setTimeout(() => {
           alert('Congratulations! You have completed the puzzle correctly.');
