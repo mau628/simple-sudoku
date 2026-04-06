@@ -7,7 +7,7 @@
         <span v-html="value.label"></span>
       </label>
     </div>
-    <button class="button is-primary" @click.prevent="newGame">
+    <button class="button is-primary" @click.prevent="newGame(true)">
       <span>
         New
       </span>
@@ -107,7 +107,7 @@ const isGridValid = (boardGrid: number[][] | Cell[][]): boolean => {
     else {
       uniqueItems = new Set<number>((boardGrid[row] as Cell[]).map(cell => cell.Value as number));
     }
-    if (uniqueItems.size !== 9) {
+    if ([...uniqueItems].filter(item => item !== undefined).length !== 9) {
       return false
     }
   }
@@ -219,6 +219,12 @@ const getGrid = () => {
     IsHighlighted: false,
   })));
   saveGridToStorage();
+
+  // Reset all buttons and cells in single pass
+  buttons.value.forEach(num => {
+    num.Selected = false;
+    num.Remaining = 0;
+  });
 }
 
 const toggleNumber = (number: ButtonPicker) => {
@@ -282,15 +288,18 @@ const setNumber = (cell: Cell) => {
   }
 }
 
-const newGame = () => {
-  const confirmNewGame = confirm('Are you sure you want to start a new game? Your current progress will be lost.');
+const newGame = (requiresConfirmation: boolean) => {
+  let confirmNewGame = true;
+  if (requiresConfirmation) {
+    confirmNewGame = confirm('Are you sure you want to start a new game? Your current progress will be lost.');
+  }
   if (confirmNewGame) {
     getGrid();
   }
 }
 
 watch(level, () => {
-  newGame();
+  newGame(false);
   setStorage(levelStorageKey, levels.value.findIndex(lvl => lvl.value === level.value).toString());
 });
 
